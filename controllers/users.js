@@ -1,4 +1,3 @@
-const { model } = require("mongoose");
 const UserModel = require("../db/models/User.model");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
@@ -21,38 +20,57 @@ exports.Add = async (req, res) => {
   }
 };
 
-exports.Signup = async (req,res) => {
-
-
- 
+exports.Signup = async (req, res) => {
   try {
-    const {firstName , lastName, middleName, age, country, mobile, email, password} = req.body;
+    const {
+      firstName,
+      lastName,
+      middleName,
+      role,
+      age,
+      country,
+      mobile,
+      email,
+      password,
+    } = req.body;
     // Existing User Check
-    const existingUser = await UserModel.findOne({email : email});
-    if(existingUser){
-      return res.status(400).json({message:"User Already Exists"});
+    const existingUser = await UserModel.findOne({
+      email: email,
+      isDeleted: false,
+    });
+    if (existingUser) {
+      return res
+        .status(400)
+        .json({ status: false, message: "User Already Exists" });
     }
     // HashedPassword
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // User Creation
     const result = await UserModel.create({
-      email : email,
-      password : hashedPassword,
+      email: email,
+      password: hashedPassword,
       firstName,
       lastName,
       middleName,
+      role,
       age,
       country,
       mobile,
-    })
+    });
 
     // Token Generate with using JWT
-    const token = jwt.sign({email : result.email , id : result._id},process.env.SECRET_KEY);
-    res.status(201).json({user : result, token: token})
-    
+    const token = jwt.sign(
+      { user: result, email: result.email, id: result._id },
+      process.env.SECRET_KEY
+    );
+    res.status(201).json({
+      status: true,
+      message: "User register successfully.",
+      data: { user: result, token: token },
+    });
   } catch (error) {
     console.log(error);
-    res.status(500).json({message : "Internal Server Error"});
+    res.status(500).json({ status: false, message: error.message });
   }
-}
+};
