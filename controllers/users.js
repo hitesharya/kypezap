@@ -1,6 +1,8 @@
 const UserModel = require("../db/models/User.model");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const mailService = require("../services/mailService");
+const CryptoJS = require("crypto-js");
 
 exports.getUsers = (req, res) => {
   return res.status(200).send({ data: "respond with a resource" });
@@ -72,5 +74,46 @@ exports.Signup = async (req, res) => {
   } catch (error) {
     console.log(error);
     res.status(500).json({ status: false, message: error.message });
+  }
+};
+
+exports.verifyMail = async (req, res) => {
+  try {
+    const encryptData = (data) => {
+      const encryptedData = CryptoJS.AES.encrypt(
+        data,
+        "my_super_key"
+      ).toString();
+      return encryptedData;
+    };
+
+    const encryptedEmailData = encryptData(
+      req.body.email + "|" + req.body.password
+    );
+
+    const resetLink = `http://localhost:3000/roles?data=${encodeURIComponent(
+      encryptedEmailData
+    )}`;
+
+    const data = {
+      email: req.body.email,
+      body: ` <div style="max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f5f5f5; border-radius: 5px; font-family: Arial, sans-serif; line-height: 1.6;">
+      <h2 style="text-align: center;">Verification email address</h2>
+      <p>Dear User,</p>
+      <p>Welcome to KypeZap, Before you start we just need to confirm you email address. To proceed with the verification link, please click the button below:</p>
+      <p style="text-align: center; margin-bottom: 20px;">
+        <a style="display: inline-block; background-color: #4CAF50; color: #ffffff; text-decoration: none; padding: 10px 20px; border-radius: 5px;" href="${resetLink}">Verify Email Address</a>
+      </p>
+      <p>If you have not requested this, please ignore this email.</p>
+      <div style="margin-top: 20px; text-align: center;">
+        <p>Best regards,</p>
+        <p>Team KypeZap</p>
+      </div>
+    </div>`,
+    };
+    const result = await mailService.sendMail(data.email, data.body);
+    return res.json(result);
+  } catch (error) {
+    return res.status(404).status(error.message);
   }
 };

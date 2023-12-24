@@ -1,7 +1,7 @@
 const roles = {
-  PARENT: "parent",
-  STUDENT: "student",
-  TEACHER: "teacher",
+  Parent: "Parent",
+  Student: "Student",
+  Institution: "Institution",
 };
 
 module.exports = roles;

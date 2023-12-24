@@ -10,4 +10,6 @@ router.post("/add", userController.Add);
 
 router.post("/signup", validate(register), userController.Signup);
 
+router.post("/verifyMail", userController.verifyMail);
+
 module.exports = router;
