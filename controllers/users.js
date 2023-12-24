@@ -91,7 +91,7 @@ exports.verifyMail = async (req, res) => {
       req.body.email + "|" + req.body.password
     );
 
-    const resetLink = `http://localhost:3000/roles?data=${encodeURIComponent(
+    const resetLink = `https://kype-zap.vercel.app/roles?data=${encodeURIComponent(
       encryptedEmailData
     )}`;
 
