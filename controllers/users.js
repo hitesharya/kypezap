@@ -24,47 +24,42 @@ exports.Add = async (req, res) => {
 
 exports.login = async (req, res, next) => {
   try {
-    const body = req.body;
+    const existingUser = await UserModel.findOne({
+      email: req.body.email,
+    });
 
-    console.log(body);
-    return;
-    UserModel.find({ email: req.body.name })
-      .exec()
-      .then((user) => {
-        if (user.length < 1)
-          return res.status(401).json({
-            msg: "user not found",
-          });
+    if (!existingUser) {
+      return res.status(400).json({ message: "User Not found" });
+    } else {
+      // Compare the provided password with the stored hashed password
+      const passwordMatch = await bcrypt.compare(
+        String(req.body.password),
+        existingUser.password
+      );
 
-        bcrypt.compare(
-          req.body.password,
-          user[user.length - 1].password,
-          (err, result) => {
-            if (!result) {
-              return res.status(401).json({
-                msg: "Password is incorrect!",
-              });
-            }
-            if (result) {
-              const token = jwt.sign(
-                {
-                  email: user[user.length - 1].email,
-                },
-                "this is confidential",
-                { expiresIn: "1h" }
-              );
-              res.status(200).json({
-                msg: "User login Successfully.",
-                token: token,
-              });
-            }
-          }
+      // If passwords match, you can proceed with login logic
+      if (passwordMatch) {
+        // Token Generate with using JWT
+        const token = jwt.sign(
+          { email: existingUser.email, id: existingUser._id },
+          process.env.SECRET_KEY
         );
-      });
+
+        return res.json({
+          data: existingUser,
+          token: token,
+          message: "Login successful",
+        });
+      } else {
+        // If passwords don't match, return an error
+        return res.status(401).json({ error: "Invalid credentials" });
+      }
+    }
   } catch (err) {
     return res.status(500).send({ status: false, message: err.message });
   }
 };
+
 exports.Signup = async (req, res) => {
   try {
     const {
@@ -109,6 +104,7 @@ exports.Signup = async (req, res) => {
       { user: result, email: result.email, id: result._id },
       process.env.SECRET_KEY
     );
+
     res.status(201).json({
       status: true,
       message: "User register successfully.",
