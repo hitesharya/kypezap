@@ -10,17 +10,19 @@ var usersRouter = require("./routes/users");
 
 var app = express();
 require("./db/db");
+ 
 
 
 
-var port = process.env.PORT || "3000";
+
+var port = process.env.PORT || "4000";
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
-app.use("/users", usersRouter);
+app.use("/", usersRouter);
 
 // catch 404 and forward to error handler
 
