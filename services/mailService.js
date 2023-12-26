@@ -14,7 +14,6 @@ exports.sendMail = async (to, body) => {
       sgMail
         .send(msg)
         .then((result) => {
-          console.log(result);
           resolve({
             status: 200,
             code: "Success",

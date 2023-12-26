@@ -29,7 +29,7 @@ exports.login = async (req, res, next) => {
     });
 
     if (!existingUser) {
-      return res.status(400).json({ message: "User Not found" });
+      return res.status(400).json({ status: 401, message: "User Not found" });
     } else {
       // Compare the provided password with the stored hashed password
       const passwordMatch = await bcrypt.compare(
@@ -46,13 +46,16 @@ exports.login = async (req, res, next) => {
         );
 
         return res.json({
+          status: 200,
           data: existingUser,
           token: token,
           message: "Login successful",
         });
       } else {
         // If passwords don't match, return an error
-        return res.status(401).json({ error: "Invalid credentials" });
+        return res
+          .status(401)
+          .json({ status: 401, message: "Invalid credentials" });
       }
     }
   } catch (err) {
@@ -127,7 +130,7 @@ exports.verifyMail = async (req, res) => {
     };
 
     const encryptedEmailData = encryptData(
-      req.body.email + "|" + req.body.password
+      req.body.email + "|" + Number(req.body.password)
     );
 
     const resetLink = `https://kype-zap.vercel.app/roles?data=${encodeURIComponent(
@@ -151,8 +154,8 @@ exports.verifyMail = async (req, res) => {
     </div>`,
     };
     const result = await mailService.sendMail(data.email, data.body);
-    return res.json(result);
+    return res.json({ status: 200, message: result });
   } catch (error) {
-    return res.status(404).status(error.message);
+    return res.json({ status: 400, message: error.message });
   }
 };
